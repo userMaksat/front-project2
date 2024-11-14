@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project 2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style-position: inside;
+        }
+        .main {
+            height: 100vh;
+            width: 100vw;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        input[type=text] {
+            margin: 0;
+            width: 450px;
+            font-size: 40px;
+            border: 2px solid navy;
+            border-radius: 30px;
+            padding: 5px 10px;
+        }
+        .results {
+            margin-top: 8px;
+            width: 350px;
+            padding-left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .results div {
+            text-overflow: clip;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .box {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+            background-color: #fff;
+            width: 55vw;
+            height: 55vh;
+            box-shadow: 0 0 200px 200px rgba(0, 0, 0, 0.1);
+            border-radius: 45px;
+            overflow-y: scroll;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 16px;
+            row-gap: 32px;
+            padding: 24px;
+        }
+        .box::-webkit-scrollbar {
+            display: none;
+        }
+        .box img {
+            width: 100%;
+            margin: auto;
+        }
+        .a {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .favor {
+            position: absolute;
+            top: 32px;
+            left: 32px;
+            color: navy;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="container">
+            <div class="bar">
+                <input type="text">
+            </div>
+            <div class="results">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+
+        <div class="box">
+            <img src="" alt="">
+            <div class="recipe">
+                <div class="a">Overview</div>
+            </div>
+            <div class="instructions">
+                <div class="a">Rating and Runtime</div>
+            </div>
+            <div class="summary">
+                <div class="a">Cast</div>
+            </div>
+            <div class="close a">Close</div>
+            <div class="favourite a">Add to Favourite</div>
+        </div>
+
+        <div class="favor">
+            <div class="a">Favourites</div>
+        </div>
+    </div>
+
+    <script>
+        let globalTitle = '';
+        let globalId = '';
+
+        const input = document.querySelector('input');
+        input.addEventListener('keyup', (e) => {
+            getData(input.value);
+        });
+        const searchBox = document.querySelectorAll('.results>div');
+        searchBox.forEach(el => {
+            el.addEventListener('click', e => {
+                const resBox = document.querySelector('.box');
+                resBox.style.display = 'grid';
+                showBox(e.srcElement.id);
+
+                globalId = e.srcElement.id;
+                globalTitle = e.srcElement.innerText;
+            });
+        });
+        const close = document.querySelector('.close');
+        close.addEventListener('click', e => {
+            const resBox = document.querySelector('.box');
+            resBox.style.display = 'none';
+            const img = document.querySelector('.box img');
+            const ing = document.querySelector('.recipe');
+            const ins = document.querySelector('.instructions');
+            const sum = document.querySelector('.summary');
+
+            img.setAttribute('src', '');
+            while (ing.children.length > 1) {
+                ing.removeChild(ing.children[1]);
+            }
+            while (ins.children.length > 1) {
+                ins.removeChild(ins.children[1]);
+            }
+            while (sum.children.length > 1) {
+                sum.removeChild(sum.children[1]);
+            }
+        });
+        const favorBtn = document.querySelector('.favourite');
+        favorBtn.addEventListener('click', e => {
+            const newE = document.createElement('div');
+            newE.setAttribute('id', globalId);
+            newE.innerText = globalTitle;
+
+            const favor = document.querySelector('.favor');
+            favor.appendChild(newE);
+        });
+
+        async function getData(query) {
+            // fe096c388d477624240a675b1b43d5ce
+            const url = 'https://api.themoviedb.org/3/search/movie?api_key=fe096c388d477624240a675b1b43d5ce&query=' + query;
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error('asd');
+                }
+
+                const json = await res.json();
+                let results = json.results;
+                console.log(results);
+                empty = false;
+                if (query.length == 0) {
+                    
+                    empty = true;
+                }
+                
+                if (!empty) {
+                    for (var i = 0; i < 10; i++) {
+                        searchBox[i].style.display = 'block';
+                        searchBox[i].setAttribute('id', results[i].id);
+                        searchBox[i].innerText = results[i].title;
+                    }
+                } else {
+                    for (var i = 0; i < 10; i++) {
+                        searchBox[i].style.display = 'none';
+                        searchBox[i].setAttribute('id', '');
+                    }
+                }
+            } catch (error) {
+                console.log(error.message);
+            }
+        }
+
+        
+        async function showBox(id) {
+            const url = 'https://api.themoviedb.org/3/movie/' + id + '?api_key=fe096c388d477624240a675b1b43d5ce';
+            const url2 = 'https://api.themoviedb.org/3/movie/' + id + '/credits?api_key=fe096c388d477624240a675b1b43d5ce';
+            try {
+                const res = await fetch(url);
+                const res2 = await fetch(url2);
+                if (!res.ok) {
+                    throw new Error('asd');
+                }
+                if (!res2.ok) {
+                    throw new Error('asd2');
+                }
+                
+                const json = await res.json();
+                const json2 = await res2.json();
+                // console.log(json);
+                // console.log(json2);
+
+                const img = document.querySelector('.box img');
+                const ing = document.querySelector('.recipe');
+                const ins = document.querySelector('.instructions');
+                const sum = document.querySelector('.summary');
+
+                img.setAttribute('src', 'https://image.tmdb.org/t/p/w500/' + json.poster_path);
+                const newO = document.createElement('div');
+                newO.innerHTML = json.overview;
+                ing.appendChild(newO);
+
+                const newS = document.createElement('div');
+                newS.innerHTML = 'Rating: ' + json.vote_average + '<br>Runtime: ' + json.runtime;
+                ins.appendChild(newS);
+                
+                const newM = document.createElement('div');
+                for (var i = 0; i < Math.min(10, json2.cast.length); i++) {
+                    const newMM = document.createElement('div');
+                    newMM.innerHTML = json2.cast[i].name;
+                    newM.appendChild(newMM);
+                }
+                sum.appendChild(newM);
+            } catch (error) {
+                console.log(error.message);
+            }
+        }
+    </script>
+</body>
+</html>
